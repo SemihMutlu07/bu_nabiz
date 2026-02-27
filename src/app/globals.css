@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Override dark: variant → attribute-based instead of media query */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Light tokens ─────────────────────────────────────────── */
+:root {
+  --bg:      #FAFAF7;
+  --surface: #FFFFFF;
+  --rim:     #E8E8E3;
+  --ink:     #1E1E1E;
+  --dim:     #5C5C5C;
+  --accent:  #5BA8A0;
+}
+
+/* ── Dark tokens ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:      #121212;
+  --surface: #1B1B1B;
+  --rim:     #2A2A2A;
+  --ink:     #E6E6E6;
+  --dim:     #A8A8A8;
+  --accent:  #5BA8A0;
+}
+
+/* ── Map to Tailwind utility classes ─────────────────────── */
+@theme inline {
+  --color-bg:      var(--bg);
+  --color-surface: var(--surface);
+  --color-rim:     var(--rim);
+  --color-ink:     var(--ink);
+  --color-dim:     var(--dim);
+  --color-accent:  var(--accent);
+  --font-sans:     var(--font-geist-sans);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+}
