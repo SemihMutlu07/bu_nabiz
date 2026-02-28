@@ -9,6 +9,7 @@ import {
   STATUS_LABELS, STATUS_COLORS,
   CATEGORIES, STATUSES,
 } from '@/lib/constants'
+import { validateCustomText, checkCooldown, recordPost } from '@/lib/validation'
 
 interface Props {
   week: string
@@ -39,6 +40,13 @@ export default function ShareForm({ week, onPostCreated }: Props) {
       setError('Kategori, durum ve yoğunluk zorunlu.')
       return
     }
+
+    const cooldown = checkCooldown()
+    if (!cooldown.ok) { setError(cooldown.message); return }
+
+    const textCheck = validateCustomText(customText)
+    if (!textCheck.ok) { setError(textCheck.message); return }
+
     setSubmitting(true)
     setError(null)
     try {
@@ -52,6 +60,7 @@ export default function ShareForm({ week, onPostCreated }: Props) {
         me_too_count: 0,
         created_at: serverTimestamp(),
       })
+      recordPost()
       setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
@@ -61,7 +70,7 @@ export default function ShareForm({ week, onPostCreated }: Props) {
       }, 900)
     } catch (err) {
       console.error(err)
-      setError('Bir hata oluştu, tekrar dene.')
+      setError('Bir şeyler ters gitti, tekrar deneyebilirsin.')
     } finally {
       setSubmitting(false)
     }

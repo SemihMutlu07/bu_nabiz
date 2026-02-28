@@ -15,6 +15,7 @@ export default function PostCard({ post }: Props) {
   const [count, setCount] = useState(post.me_too_count)
   const [voted, setVoted] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [pop, setPop] = useState(false)
 
   async function handleMeToo() {
     if (voted || busy) return
@@ -42,6 +43,8 @@ export default function PostCard({ post }: Props) {
       if (didCreate) {
         setCount(c => c + 1)
         setVoted(true)
+        setPop(true)
+        setTimeout(() => setPop(false), 200)
       }
     } catch (err) {
       console.error('Ben de error:', err)
@@ -85,14 +88,25 @@ export default function PostCard({ post }: Props) {
         <button
           onClick={handleMeToo}
           disabled={voted || busy}
-          className={`flex items-center gap-1.5 text-xs font-medium px-4 min-h-[40px] rounded-full border transition-all ${
+          className={`flex items-center gap-2 text-xs font-medium px-3 min-h-[36px] rounded-full border transition-all ${
             voted
               ? 'border-rim text-dim/60 cursor-default'
               : 'border-rim text-dim hover:border-accent hover:text-accent active:scale-95 cursor-pointer'
           }`}
         >
-          <span>+1 Ben de</span>
-          {count > 0 && <span className="font-semibold">{count}</span>}
+          <span>{voted ? 'Ben de ✓' : 'Ben de'}</span>
+          {count > 0 && (
+            <span
+              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-semibold bg-rim/60 text-ink/70"
+              style={{
+                transition: 'transform 200ms ease-out, opacity 200ms ease-out',
+                transform: pop ? 'scale(1.2)' : 'scale(1)',
+                opacity: pop ? 1 : 0.7,
+              }}
+            >
+              {count}
+            </span>
+          )}
         </button>
       </div>
     </article>

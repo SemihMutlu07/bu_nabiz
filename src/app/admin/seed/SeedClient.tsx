@@ -3,11 +3,63 @@
 import { useState } from 'react'
 import { db } from '@/lib/firebase'
 import {
-  collection, addDoc, getDocs, query, where,
+  collection, addDoc, getDocs, query, where, limit,
   writeBatch, doc, Timestamp,
 } from 'firebase/firestore'
 import { getCurrentWeek } from '@/lib/utils'
 
+// ── Auth ──────────────────────────────────────────────────────
+const ADMIN_CODE = process.env.NEXT_PUBLIC_ADMIN_CODE ?? ''
+
+function CodeGate({ onAuth }: { onAuth: () => void }) {
+  const [input, setInput] = useState('')
+  const [wrong, setWrong] = useState(false)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (ADMIN_CODE && input === ADMIN_CODE) {
+      onAuth()
+    } else {
+      setWrong(true)
+      setInput('')
+    }
+  }
+
+  if (!ADMIN_CODE) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
+        <p className="text-sm text-dim text-center">
+          <code className="bg-surface border border-rim rounded px-1.5 py-0.5 text-xs">NEXT_PUBLIC_ADMIN_CODE</code> ortam değişkeni tanımlı değil.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-3">
+        <p className="text-sm font-medium text-ink text-center">Admin kodu</p>
+        <input
+          type="password"
+          value={input}
+          onChange={e => { setInput(e.target.value); setWrong(false) }}
+          autoFocus
+          autoComplete="off"
+          className="w-full text-sm bg-surface text-ink border border-rim rounded-xl px-4 py-2.5 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-colors"
+        />
+        {wrong && <p className="text-xs text-dim text-center">Kod hatalı.</p>}
+        <button
+          type="submit"
+          className="w-full py-2.5 rounded-xl text-sm font-medium bg-ink text-bg hover:opacity-80 transition-all"
+        >
+          Giriş
+        </button>
+      </form>
+    </div>
+  )
+}
+
+// ── Seed data ─────────────────────────────────────────────────
 type SeedPost = {
   category: 'ders' | 'proje' | 'basvuru' | 'hayat'
   status: 'yetismiyor' | 'odak_yok' | 'tikandim' | 'yorgun' | 'kaygili' | 'idare_eder'
@@ -40,31 +92,52 @@ const SAMPLE: SeedPost[] = [
   { category: 'hayat',   status: 'kaygili',    intensity: 3, custom_text: 'Mezuniyet sonrası ne yapacağımı bilmiyorum, herkes bir şey planlamış gibi görünüyor.', micro_step: null,                   me_too_count: 14 },
 ]
 
-type State = 'idle' | 'seeding' | 'seeded' | 'clearing' | 'cleared' | 'error'
+// ── Main component ────────────────────────────────────────────
+type State = 'idle' | 'checking' | 'seeding' | 'seeded' | 'clearing' | 'cleared' | 'error'
 
 export default function SeedClient() {
+  const [authed, setAuthed] = useState(false)
   const [state, setState] = useState<State>('idle')
   const [msg, setMsg] = useState('')
 
   const week = getCurrentWeek()
 
-  async function seed() {
+  if (!authed) return <CodeGate onAuth={() => setAuthed(true)} />
+
+  async function doInsert() {
     setState('seeding')
+    const now = Date.now()
+    for (let i = 0; i < SAMPLE.length; i++) {
+      const p = SAMPLE[i]
+      const ts = Timestamp.fromDate(new Date(now - (SAMPLE.length - i) * 1800_000))
+      await addDoc(collection(db, 'posts'), { week, ...p, created_at: ts })
+    }
+    setState('seeded')
+    setMsg(`${SAMPLE.length} post eklendi → /w/${week}`)
+  }
+
+  async function seed() {
     setMsg('')
     try {
-      const now = Date.now()
-      for (let i = 0; i < SAMPLE.length; i++) {
-        const p = SAMPLE[i]
-        // Spread posts over the last ~10 hours for realistic ordering
-        const ts = Timestamp.fromDate(new Date(now - (SAMPLE.length - i) * 1800_000))
-        await addDoc(collection(db, 'posts'), {
-          week,
-          ...p,
-          created_at: ts,
-        })
+      await doInsert()
+    } catch (e) {
+      console.error(e)
+      setState('error')
+      setMsg('Hata oluştu, konsolu kontrol et.')
+    }
+  }
+
+  async function seedIfEmpty() {
+    setState('checking')
+    setMsg('')
+    try {
+      const snap = await getDocs(query(collection(db, 'posts'), where('week', '==', week), limit(1)))
+      if (!snap.empty) {
+        setState('idle')
+        setMsg('Bu haftada zaten post var, seed atlanıyor.')
+        return
       }
-      setState('seeded')
-      setMsg(`${SAMPLE.length} post eklendi → /w/${week}`)
+      await doInsert()
     } catch (e) {
       console.error(e)
       setState('error')
@@ -73,6 +146,8 @@ export default function SeedClient() {
   }
 
   async function clearWeek() {
+    const ok = window.confirm(`${week} haftasındaki tüm postlar silinecek. Emin misin?`)
+    if (!ok) return
     setState('clearing')
     setMsg('')
     try {
@@ -94,7 +169,7 @@ export default function SeedClient() {
     }
   }
 
-  const busy = state === 'seeding' || state === 'clearing'
+  const busy = state === 'checking' || state === 'seeding' || state === 'clearing'
 
   return (
     <div className="min-h-screen bg-bg">
@@ -109,13 +184,22 @@ export default function SeedClient() {
             <p className="text-sm font-medium text-ink">Örnek veri ekle</p>
             <p className="text-xs text-dim mt-0.5">{SAMPLE.length} farklı post ekler (mevcut postlar silinmez).</p>
           </div>
-          <button
-            onClick={seed}
-            disabled={busy}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-ink text-bg hover:opacity-80 disabled:opacity-40 transition-all"
-          >
-            {state === 'seeding' ? 'Ekleniyor...' : `${SAMPLE.length} Post Ekle`}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={seedIfEmpty}
+              disabled={busy}
+              className="px-4 py-2 rounded-xl text-sm font-medium bg-ink text-bg hover:opacity-80 disabled:opacity-40 transition-all"
+            >
+              {state === 'checking' ? 'Kontrol ediliyor...' : state === 'seeding' ? 'Ekleniyor...' : 'Seed if empty'}
+            </button>
+            <button
+              onClick={seed}
+              disabled={busy}
+              className="px-4 py-2 rounded-xl text-sm font-medium border border-rim text-dim hover:text-ink hover:border-ink disabled:opacity-40 transition-all"
+            >
+              {state === 'seeding' ? 'Ekleniyor...' : `${SAMPLE.length} Post Ekle`}
+            </button>
+          </div>
         </div>
 
         <div className="bg-surface border border-rim rounded-2xl p-5 space-y-4">
@@ -128,7 +212,7 @@ export default function SeedClient() {
             disabled={busy}
             className="px-4 py-2 rounded-xl text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/20 disabled:opacity-40 transition-all"
           >
-            {state === 'clearing' ? 'Siliniyor...' : 'Bu Haftayı Temizle'}
+            {state === 'clearing' ? 'Siliniyor...' : 'Bu haftanın postlarını sil'}
           </button>
         </div>
 

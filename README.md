@@ -30,7 +30,20 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
+
+# Admin paneli için giriş kodu (MVP)
+NEXT_PUBLIC_ADMIN_CODE=istedigin-bir-kod
 ```
+
+## Admin Paneli
+
+`/admin/seed` adresinde seed ve silme araçları bulunur.
+
+Sayfaya gittiğinde bir **admin kodu** girmen istenir. Kod `.env.local` (veya Netlify/Vercel'deki environment variables) içindeki `NEXT_PUBLIC_ADMIN_CODE` değeriyle eşleşmelidir.
+
+**Yerel geliştirme:** `.env.local` içinde `NEXT_PUBLIC_ADMIN_CODE=nabiz-admin` olarak tanımlıdır; `/admin/seed` adresine git ve `nabiz-admin` yaz.
+
+**Production (Netlify):** Netlify dashboard → Site settings → Environment variables → `NEXT_PUBLIC_ADMIN_CODE` ekle, sonra yeni bir deploy tetikle.
 
 ## Rotalar
 

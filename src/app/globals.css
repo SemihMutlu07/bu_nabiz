@@ -38,3 +38,7 @@ body {
   background-color: var(--bg);
   color: var(--ink);
 }
+
+/* ── Utilities ────────────────────────────────────────────── */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
