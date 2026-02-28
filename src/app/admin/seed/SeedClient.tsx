@@ -9,7 +9,9 @@ import {
 import { getCurrentWeek } from '@/lib/utils'
 
 // ── Auth ──────────────────────────────────────────────────────
-const ADMIN_CODE = process.env.NEXT_PUBLIC_ADMIN_CODE ?? ''
+// Env var overrides the fallback; fallback keeps the page usable when
+// NEXT_PUBLIC_ADMIN_CODE is not set in the deployment environment.
+const ADMIN_CODE = process.env.NEXT_PUBLIC_ADMIN_CODE || 'nabiz-admin'
 
 function CodeGate({ onAuth }: { onAuth: () => void }) {
   const [input, setInput] = useState('')
@@ -17,22 +19,12 @@ function CodeGate({ onAuth }: { onAuth: () => void }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (ADMIN_CODE && input === ADMIN_CODE) {
+    if (input === ADMIN_CODE) {
       onAuth()
     } else {
       setWrong(true)
       setInput('')
     }
-  }
-
-  if (!ADMIN_CODE) {
-    return (
-      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
-        <p className="text-sm text-dim text-center">
-          <code className="bg-surface border border-rim rounded px-1.5 py-0.5 text-xs">NEXT_PUBLIC_ADMIN_CODE</code> ortam değişkeni tanımlı değil.
-        </p>
-      </div>
-    )
   }
 
   return (
