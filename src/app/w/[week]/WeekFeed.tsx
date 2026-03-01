@@ -22,8 +22,9 @@ export default function WeekFeed({ week }: Props) {
   const [filterStatus, setFilterStatus] = useState<Status | null>(null)
   const [copied, setCopied] = useState(false)
 
-  const weekNum = week.split('-W')[1]
-  const yearNum = week.split('-W')[0]
+  const weekNum    = week.split('-W')[1]
+  const yearNum    = week.split('-W')[0]
+  const meTooTotal = posts.reduce((sum, p) => sum + (p.me_too_count || 0), 0)
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -110,6 +111,11 @@ export default function WeekFeed({ week }: Props) {
           <h1 className="text-[1.25rem] font-semibold text-white leading-snug">
             Boğaziçi&apos;de bu hafta yalnız değilsin.
           </h1>
+          {!loading && posts.length > 0 && (
+            <p className="text-xs text-white/50 mt-2 font-sans">
+              {posts.length} paylaşım · {meTooTotal} ben de
+            </p>
+          )}
         </div>
       </div>
 

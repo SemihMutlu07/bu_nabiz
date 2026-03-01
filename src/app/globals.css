@@ -31,7 +31,13 @@
   --color-ink:     var(--ink);
   --color-dim:     var(--dim);
   --color-accent:  var(--accent);
-  --font-sans:     var(--font-geist-sans);
+  --font-sans:     var(--font-montserrat);
+  --font-serif:    var(--font-merriweather);
+}
+
+/* Merriweather for all headings */
+h1, h2, h3 {
+  font-family: var(--font-merriweather), Georgia, serif;
 }
 
 body {

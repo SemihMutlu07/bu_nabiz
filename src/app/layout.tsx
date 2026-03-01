@@ -1,10 +1,19 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Merriweather, Montserrat } from 'next/font/google'
 import './globals.css'
 
-const geist = Geist({
-  subsets: ['latin'],
-  variable: '--font-geist-sans',
+const merriweather = Merriweather({
+  weight: ['400', '700'],
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-merriweather',
+  display: 'swap',
+})
+
+const montserrat = Montserrat({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-montserrat',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -26,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${geist.variable} font-sans antialiased`}>
+      <body className={`${merriweather.variable} ${montserrat.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

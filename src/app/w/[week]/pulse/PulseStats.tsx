@@ -13,8 +13,9 @@ interface Props {
 }
 
 export default function PulseStats({ week }: Props) {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [posts, setPosts]           = useState<Post[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [shareCopied, setShareCopied] = useState(false)
 
   const weekNum = week.split('-W')[1]
   const yearNum = week.split('-W')[0]
@@ -51,6 +52,18 @@ export default function PulseStats({ week }: Props) {
   const topCats     = Object.entries(catCounts).sort(([, a], [, b]) => b - a)
   const topStatuses = Object.entries(statusCounts).sort(([, a], [, b]) => b - a)
 
+  function copyShare() {
+    const topStatus = topStatuses[0]
+      ? STATUS_LABELS[topStatuses[0][0] as Status]
+      : '—'
+    const url  = `${window.location.origin}/w/${week}`
+    const text = `BÜ Nabız (${week}): ${totalPosts} paylaşım. En çok "${topStatus}". Sen nasılsın? ${url}`
+    navigator.clipboard.writeText(text).then(() => {
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2500)
+    })
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
@@ -62,6 +75,18 @@ export default function PulseStats({ week }: Props) {
             <p className="text-sm text-dim mt-0.5">{yearNum} · {weekNum}. hafta</p>
           </div>
           <div className="flex items-center gap-2">
+            {!loading && totalPosts > 0 && (
+              <button
+                onClick={copyShare}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                  shareCopied
+                    ? 'border-accent/40 bg-accent/8 text-accent'
+                    : 'border-rim text-dim hover:border-ink/40 hover:text-ink'
+                }`}
+              >
+                {shareCopied ? 'Kopyalandı ✅' : 'Paylaş'}
+              </button>
+            )}
             <ThemeToggle />
             <Link
               href={`/w/${week}`}
