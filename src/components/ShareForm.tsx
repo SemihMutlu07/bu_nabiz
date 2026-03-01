@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import type { Category, Status } from '@/lib/types'
@@ -14,6 +14,7 @@ import { validateCustomText, checkCooldown, recordPost } from '@/lib/validation'
 interface Props {
   week: string
   onPostCreated: () => void
+  openSignal?: number
 }
 
 // Clicking a chip fills (or clears) the note textarea directly.
@@ -28,7 +29,7 @@ const PRESETS = [
   'Geçer, biliyorum.',
 ]
 
-export default function ShareForm({ week, onPostCreated }: Props) {
+export default function ShareForm({ week, onPostCreated, openSignal }: Props) {
   const [open, setOpen]           = useState(false)
   const [status, setStatus]       = useState<Status | null>(null)
   const [intensity, setIntensity] = useState<number | null>(null)
@@ -37,6 +38,9 @@ export default function ShareForm({ week, onPostCreated }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [success, setSuccess]     = useState(false)
+
+  // Open form when welcome sheet primary button is clicked
+  useEffect(() => { if ((openSignal ?? 0) > 0) setOpen(true) }, [openSignal])
 
   // Derived visibility flags
   const step1Done    = status !== null && intensity !== null

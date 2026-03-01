@@ -9,6 +9,7 @@ import type { Post, Category, Status } from '@/lib/types'
 import PostCard from '@/components/PostCard'
 import ShareForm from '@/components/ShareForm'
 import ThemeToggle from '@/components/ThemeToggle'
+import WelcomeSheet from '@/components/WelcomeSheet'
 import { CATEGORIES, STATUSES, CATEGORY_LABELS, STATUS_LABELS } from '@/lib/constants'
 
 interface Props {
@@ -21,6 +22,7 @@ export default function WeekFeed({ week }: Props) {
   const [filterCategory, setFilterCategory] = useState<Category | null>(null)
   const [filterStatus, setFilterStatus] = useState<Status | null>(null)
   const [copied, setCopied] = useState(false)
+  const [openSignal, setOpenSignal] = useState(0)
 
   const weekNum    = week.split('-W')[1]
   const yearNum    = week.split('-W')[0]
@@ -124,7 +126,7 @@ export default function WeekFeed({ week }: Props) {
 
         {/* Share form */}
         <div className="mt-5 mb-5">
-          <ShareForm week={week} onPostCreated={fetchPosts} />
+          <ShareForm week={week} onPostCreated={fetchPosts} openSignal={openSignal} />
         </div>
 
         {/* Sticky filter bar */}
@@ -189,17 +191,88 @@ export default function WeekFeed({ week }: Props) {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-3xl mb-3">🌿</p>
-            <p className="text-sm text-dim/60">
-              {posts.length === 0
-                ? 'Bu hafta henüz paylaşım yok.'
-                : 'Bu filtreyle eşleşen post yok.'}
-            </p>
-            {posts.length === 0 && (
-              <p className="text-xs text-dim/40 mt-1">İlk paylaşımı sen yap.</p>
-            )}
-          </div>
+          posts.length === 0 ? (
+            /* ── Zero-post empty state: ghosted example cards + CTA ── */
+            <div className="space-y-3 pb-8">
+              <div className="opacity-50 pointer-events-none space-y-3" aria-hidden>
+                {/* Example card 1 */}
+                <article className="bg-surface border border-rim rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400">
+                      Yorgunum
+                    </span>
+                    <div className="ml-auto flex gap-1 items-center">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={i} className={`w-2 h-2 rounded-full ${i < 3 ? 'bg-ink' : 'bg-rim'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium px-3 min-h-[36px] rounded-full border border-rim text-dim">
+                      Ben de
+                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.125rem] px-1 rounded-full text-[10px] font-semibold bg-ink/10 text-ink/60">7</span>
+                    </div>
+                  </div>
+                </article>
+                {/* Example card 2 */}
+                <article className="bg-surface border border-rim rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                      Ders
+                    </span>
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                      Yetişemiyorum
+                    </span>
+                    <div className="ml-auto flex gap-1 items-center">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={i} className={`w-2 h-2 rounded-full ${i < 4 ? 'bg-ink' : 'bg-rim'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm text-ink leading-relaxed">Ödevler yetişmiyor.</p>
+                  <div className="flex justify-end pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium px-3 min-h-[36px] rounded-full border border-rim text-dim">
+                      Ben de
+                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.125rem] px-1 rounded-full text-[10px] font-semibold bg-ink/10 text-ink/60">12</span>
+                    </div>
+                  </div>
+                </article>
+                {/* Example card 3 */}
+                <article className="bg-surface border border-rim rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                      Fena değil
+                    </span>
+                    <div className="ml-auto flex gap-1 items-center">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={i} className={`w-2 h-2 rounded-full ${i < 2 ? 'bg-ink' : 'bg-rim'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium px-3 min-h-[36px] rounded-full border border-rim text-dim">
+                      Ben de
+                      <span className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.125rem] px-1 rounded-full text-[10px] font-semibold bg-ink/10 text-ink/60">3</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div className="text-center py-4">
+                <p className="text-sm text-dim/60 mb-3">Bu hafta henüz paylaşım yok. İlk sen ol.</p>
+                <button
+                  onClick={() => setOpenSignal(s => s + 1)}
+                  className="min-h-[44px] px-6 rounded-xl text-sm font-medium bg-ink text-bg hover:opacity-80 active:scale-[0.98] transition-all"
+                >
+                  İlk paylaşımı yap
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-sm text-dim/60">Bu filtreyle eşleşen post yok.</p>
+            </div>
+          )
         ) : (
           <div className="space-y-3 pb-8">
             {filtered.map(post => (
@@ -209,6 +282,8 @@ export default function WeekFeed({ week }: Props) {
         )}
 
       </div>
+
+      <WelcomeSheet onPrimary={() => setOpenSignal(s => s + 1)} />
     </div>
   )
 }
