@@ -6,15 +6,19 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if
-        // Required fields must all be present
+        // Required fields
         request.resource.data.keys().hasAll([
-          'week', 'category', 'status', 'intensity', 'me_too_count', 'created_at'
+          'week', 'status', 'intensity', 'me_too_count', 'created_at'
         ]) &&
         // week is a non-empty string
         request.resource.data.week is string &&
         request.resource.data.week.size() > 0 &&
-        // category from whitelist
-        request.resource.data.category in ['ders', 'proje', 'basvuru', 'hayat'] &&
+        // category optional: null or from whitelist
+        (
+          !('category' in request.resource.data) ||
+          request.resource.data.category == null ||
+          request.resource.data.category in ['ders', 'proje', 'basvuru', 'hayat']
+        ) &&
         // status from whitelist
         request.resource.data.status in [
           'yetismiyor', 'odak_yok', 'tikandim', 'yorgun', 'kaygili', 'idare_eder'
@@ -27,13 +31,13 @@ service cloud.firestore {
         request.resource.data.me_too_count == 0 &&
         // created_at must be the server timestamp
         request.resource.data.created_at == request.time &&
-        // custom_text optional: null or string <= 200 chars
+        // custom_text optional: null or string <= 160 chars
         (
           !('custom_text' in request.resource.data) ||
           request.resource.data.custom_text == null ||
           (
             request.resource.data.custom_text is string &&
-            request.resource.data.custom_text.size() <= 200
+            request.resource.data.custom_text.size() <= 160
           )
         ) &&
         // micro_step optional: null or string

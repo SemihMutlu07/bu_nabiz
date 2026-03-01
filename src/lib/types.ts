@@ -6,7 +6,7 @@ export type Status = 'yetismiyor' | 'odak_yok' | 'tikandim' | 'yorgun' | 'kaygil
 export interface Post {
   id: string
   week: string
-  category: Category
+  category: Category | null
   status: Status
   intensity: number
   custom_text?: string | null

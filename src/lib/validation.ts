@@ -47,8 +47,8 @@ export function validateCustomText(raw: string): ValidationResult {
     return { ok: false, message: 'Biraz daha açıklar mısın? En az 8 karakter gerekli.' }
   }
 
-  if (text.length > 200) {
-    return { ok: false, message: 'Metin 200 karakteri aşıyor.' }
+  if (text.length > 160) {
+    return { ok: false, message: 'Metin 160 karakteri aşıyor.' }
   }
 
   if (ONLY_NONLETTER.test(text)) {

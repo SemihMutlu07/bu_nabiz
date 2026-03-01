@@ -38,6 +38,7 @@ export default function PulseStats({ week }: Props) {
   const totalMeToo = posts.reduce((sum, p) => sum + (p.me_too_count || 0), 0)
 
   const catCounts = posts.reduce<Record<string, number>>((acc, p) => {
+    if (!p.category) return acc          // skip posts with no category
     acc[p.category] = (acc[p.category] || 0) + 1
     return acc
   }, {})

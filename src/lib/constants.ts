@@ -16,7 +16,7 @@ export const STATUS_LABELS: Record<Status, string> = {
   tikandim:   'Tıkandım',
   yorgun:     'Yorgunum',
   kaygili:    'Kaygılıyım',
-  idare_eder: 'İdare Eder',
+  idare_eder: 'Fena değil',
 }
 
 // Light + dark variants for category chips

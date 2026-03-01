@@ -57,9 +57,11 @@ export default function PostCard({ post }: Props) {
     <article className="bg-surface border border-rim rounded-2xl p-4 space-y-3">
       {/* Labels + intensity */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${CATEGORY_COLORS[post.category]}`}>
-          {CATEGORY_LABELS[post.category]}
-        </span>
+        {post.category && (
+          <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${CATEGORY_COLORS[post.category]}`}>
+            {CATEGORY_LABELS[post.category]}
+          </span>
+        )}
         <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${STATUS_COLORS[post.status]}`}>
           {STATUS_LABELS[post.status]}
         </span>
