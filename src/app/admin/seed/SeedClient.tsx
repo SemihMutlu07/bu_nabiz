@@ -98,8 +98,9 @@ export default function SeedClient() {
 
   async function doInsert() {
     setState('seeding')
+    let inserted = 0
     for (const p of SAMPLE) {
-      await addDoc(collection(db, 'posts'), {
+      const payload = {
         week,
         category:     p.category,
         status:       p.status,
@@ -108,10 +109,27 @@ export default function SeedClient() {
         micro_step:   null,
         me_too_count: 0,
         created_at:   serverTimestamp(),
-      })
+      }
+      console.log(`[seed] inserting #${inserted + 1}`, JSON.stringify({
+        ...payload,
+        created_at: 'serverTimestamp()',
+      }))
+      try {
+        const ref = await addDoc(collection(db, 'posts'), payload)
+        inserted++
+        console.log(`[seed] ✓ inserted #${inserted} id=${ref.id}`)
+      } catch (e) {
+        const err = e as Error & { code?: string }
+        console.error(`[seed] ✗ failed on #${inserted + 1}`, {
+          code: err.code,
+          message: err.message,
+          payload: JSON.stringify({ ...payload, created_at: 'serverTimestamp()' }),
+        })
+        throw e
+      }
     }
     setState('seeded')
-    setMsg(`${SAMPLE.length} post eklendi → /w/${week}`)
+    setMsg(`${inserted} / ${SAMPLE.length} post eklendi → /w/${week}`)
   }
 
   async function seed() {
@@ -119,9 +137,10 @@ export default function SeedClient() {
     try {
       await doInsert()
     } catch (e) {
-      console.error(e)
+      const err = e as Error & { code?: string }
+      console.error('[seed] top-level error', err)
       setState('error')
-      setMsg(`Hata: ${(e as Error).message}`)
+      setMsg(`[${err.code ?? 'unknown'}] ${err.message}`)
     }
   }
 
@@ -137,9 +156,10 @@ export default function SeedClient() {
       }
       await doInsert()
     } catch (e) {
-      console.error(e)
+      const err = e as Error & { code?: string }
+      console.error('[seedIfEmpty] error', err)
       setState('error')
-      setMsg(`Hata: ${(e as Error).message}`)
+      setMsg(`[${err.code ?? 'unknown'}] ${err.message}`)
     }
   }
 
