@@ -1,13 +1,64 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     match /posts/{postId} {
       allow read: if true;
-      allow write: if true;
+
+      allow create: if
+        // Required fields must all be present
+        request.resource.data.keys().hasAll([
+          'week', 'category', 'status', 'intensity', 'me_too_count', 'created_at'
+        ]) &&
+        // week is a non-empty string
+        request.resource.data.week is string &&
+        request.resource.data.week.size() > 0 &&
+        // category from whitelist
+        request.resource.data.category in ['ders', 'proje', 'basvuru', 'hayat'] &&
+        // status from whitelist
+        request.resource.data.status in [
+          'yetismiyor', 'odak_yok', 'tikandim', 'yorgun', 'kaygili', 'idare_eder'
+        ] &&
+        // intensity integer 1..5
+        request.resource.data.intensity is int &&
+        request.resource.data.intensity >= 1 &&
+        request.resource.data.intensity <= 5 &&
+        // me_too_count must start at 0
+        request.resource.data.me_too_count == 0 &&
+        // created_at must be the server timestamp
+        request.resource.data.created_at == request.time &&
+        // custom_text optional: null or string <= 200 chars
+        (
+          !('custom_text' in request.resource.data) ||
+          request.resource.data.custom_text == null ||
+          (
+            request.resource.data.custom_text is string &&
+            request.resource.data.custom_text.size() <= 200
+          )
+        ) &&
+        // micro_step optional: null or string
+        (
+          !('micro_step' in request.resource.data) ||
+          request.resource.data.micro_step == null ||
+          request.resource.data.micro_step is string
+        );
+
+      // Only me_too_count may be incremented, by exactly 1
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['me_too_count']) &&
+        request.resource.data.me_too_count == resource.data.me_too_count + 1;
+
+      allow delete: if false;
     }
+
     match /me_too_events/{eventId} {
       allow read: if true;
-      allow write: if true;
+
+      allow create: if
+        request.resource.data.keys().hasAll(['post_id', 'week', 'fingerprint', 'created_at']) &&
+        request.resource.data.created_at == request.time;
+
+      allow update, delete: if false;
     }
   }
 }

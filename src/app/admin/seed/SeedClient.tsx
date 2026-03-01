@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { db } from '@/lib/firebase'
 import {
   collection, addDoc, getDocs, query, where, limit,
-  writeBatch, doc, Timestamp,
+  writeBatch, doc, serverTimestamp,
 } from 'firebase/firestore'
 import { getCurrentWeek } from '@/lib/utils'
 
@@ -98,11 +98,17 @@ export default function SeedClient() {
 
   async function doInsert() {
     setState('seeding')
-    const now = Date.now()
-    for (let i = 0; i < SAMPLE.length; i++) {
-      const p = SAMPLE[i]
-      const ts = Timestamp.fromDate(new Date(now - (SAMPLE.length - i) * 1800_000))
-      await addDoc(collection(db, 'posts'), { week, ...p, created_at: ts })
+    for (const p of SAMPLE) {
+      await addDoc(collection(db, 'posts'), {
+        week,
+        category:     p.category,
+        status:       p.status,
+        intensity:    p.intensity,
+        custom_text:  p.custom_text,
+        micro_step:   null,
+        me_too_count: 0,
+        created_at:   serverTimestamp(),
+      })
     }
     setState('seeded')
     setMsg(`${SAMPLE.length} post eklendi → /w/${week}`)
@@ -115,7 +121,7 @@ export default function SeedClient() {
     } catch (e) {
       console.error(e)
       setState('error')
-      setMsg('Hata oluştu, konsolu kontrol et.')
+      setMsg(`Hata: ${(e as Error).message}`)
     }
   }
 
@@ -133,7 +139,7 @@ export default function SeedClient() {
     } catch (e) {
       console.error(e)
       setState('error')
-      setMsg('Hata oluştu, konsolu kontrol et.')
+      setMsg(`Hata: ${(e as Error).message}`)
     }
   }
 
@@ -157,7 +163,7 @@ export default function SeedClient() {
     } catch (e) {
       console.error(e)
       setState('error')
-      setMsg('Silme hatası, konsolu kontrol et.')
+      setMsg(`Silme hatası: ${(e as Error).message}`)
     }
   }
 
