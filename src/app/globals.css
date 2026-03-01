@@ -48,3 +48,8 @@ body {
 /* ── Utilities ────────────────────────────────────────────── */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Prevent iOS Safari auto-zoom on input focus (zoom triggers below 16px) */
+@media screen and (max-width: 767px) {
+  input, textarea, select { font-size: 16px; }
+}
