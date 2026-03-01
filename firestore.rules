@@ -43,9 +43,10 @@ service cloud.firestore {
           request.resource.data.micro_step is string
         );
 
-      // Only me_too_count may be incremented, by exactly 1
+      // Only me_too_count may be incremented by exactly 1.
+      // Use changedKeys() — affectedKeys() misses transform-only writes.
       allow update: if
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['me_too_count']) &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['me_too_count']) &&
         request.resource.data.me_too_count == resource.data.me_too_count + 1;
 
       allow delete: if false;
@@ -54,8 +55,12 @@ service cloud.firestore {
     match /me_too_events/{eventId} {
       allow read: if true;
 
+      // PostCard writes: post_id, fingerprint_hash, created_at (serverTimestamp)
+      // No 'week' field; field is 'fingerprint_hash' not 'fingerprint'.
       allow create: if
-        request.resource.data.keys().hasAll(['post_id', 'week', 'fingerprint', 'created_at']) &&
+        request.resource.data.keys().hasAll(['post_id', 'fingerprint_hash', 'created_at']) &&
+        request.resource.data.post_id is string &&
+        request.resource.data.fingerprint_hash is string &&
         request.resource.data.created_at == request.time;
 
       allow update, delete: if false;
