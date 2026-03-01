@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { db } from '@/lib/firebase'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
-import type { Post } from '@/lib/types'
-import type { Category, Status } from '@/lib/types'
+import type { Post, Category, Status } from '@/lib/types'
 import PostCard from '@/components/PostCard'
 import ShareForm from '@/components/ShareForm'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -42,9 +42,7 @@ export default function WeekFeed({ week }: Props) {
     }
   }, [week])
 
-  useEffect(() => {
-    fetchPosts()
-  }, [fetchPosts])
+  useEffect(() => { fetchPosts() }, [fetchPosts])
 
   function copyLink() {
     navigator.clipboard.writeText(`${window.location.origin}/w/${week}`).then(() => {
@@ -61,50 +59,70 @@ export default function WeekFeed({ week }: Props) {
 
   return (
     <div className="min-h-screen bg-bg">
-      <div className="max-w-2xl mx-auto px-4 pt-8 pb-8">
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-ink">BÜ Nabız</h1>
-            <p className="text-sm text-dim mt-0.5">{yearNum} · {weekNum}. hafta</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={copyLink}
-              className="flex items-center gap-1 text-xs text-dim hover:text-ink transition-colors px-2 py-1.5 rounded-lg border border-transparent hover:border-rim"
-              title="Bu haftanın linkini kopyala"
-            >
-              {copied ? (
-                <span>✓ Kopyalandı</span>
-              ) : (
-                <>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                  <span>Link</span>
-                </>
-              )}
-            </button>
-            <ThemeToggle />
-            <Link
-              href={`/w/${week}/pulse`}
-              className="text-sm text-dim hover:text-ink transition-colors"
-            >
-              Nabız →
-            </Link>
-          </div>
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      <div className="relative w-full h-48 overflow-hidden">
+        <Image
+          src="/kutuphane.png"
+          alt="Boğaziçi Kütüphanesi"
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        {/* gradient — darker at bottom for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/40 to-black/10" />
+
+        {/* Top-right controls overlaid on hero */}
+        <div className="absolute top-3 right-4 z-10 flex items-center gap-1">
+          <button
+            onClick={copyLink}
+            title="Bu haftanın linkini kopyala"
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+              copied
+                ? 'border-white/30 bg-white/15 text-white'
+                : 'border-white/20 bg-black/20 text-white/60 hover:text-white hover:border-white/40'
+            }`}
+          >
+            {copied ? 'Kopyalandı ✅' : (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Link
+              </>
+            )}
+          </button>
+          <ThemeToggle />
+          <Link
+            href={`/w/${week}/pulse`}
+            className="text-xs text-white/60 hover:text-white transition-colors px-1"
+          >
+            Nabız →
+          </Link>
         </div>
 
+        {/* Bottom-left headline */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 max-w-2xl mx-auto px-5 pb-5">
+          <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-white/45 mb-1.5">
+            BÜ Nabız · {yearNum} · {weekNum}. hafta
+          </p>
+          <h1 className="text-[1.25rem] font-semibold text-white leading-snug">
+            Boğaziçi&apos;de bu hafta yalnız değilsin.
+          </h1>
+        </div>
+      </div>
+
+      {/* ── Content ───────────────────────────────────────────────── */}
+      <div className="max-w-2xl mx-auto px-4">
+
         {/* Share form */}
-        <div className="mb-5">
+        <div className="mt-5 mb-5">
           <ShareForm week={week} onPostCreated={fetchPosts} />
         </div>
 
         {/* Sticky filter bar */}
         <div className="sticky top-0 z-10 -mx-4 px-4 py-2.5 bg-bg/95 backdrop-blur-sm border-b border-rim/40 mb-4 space-y-1.5">
-          {/* Category row */}
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setFilterCategory(null)}
@@ -130,7 +148,6 @@ export default function WeekFeed({ week }: Props) {
               </button>
             ))}
           </div>
-          {/* Status row */}
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setFilterStatus(null)}
@@ -178,7 +195,7 @@ export default function WeekFeed({ week }: Props) {
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 pb-8">
             {filtered.map(post => (
               <PostCard key={post.id} post={post} />
             ))}

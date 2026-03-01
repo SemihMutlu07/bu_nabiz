@@ -88,20 +88,20 @@ export default function PostCard({ post }: Props) {
         <button
           onClick={handleMeToo}
           disabled={voted || busy}
-          className={`flex items-center gap-2 text-xs font-medium px-3 min-h-[36px] rounded-full border transition-all ${
+          className={`flex items-center gap-1.5 text-xs font-medium px-3 min-h-[36px] rounded-full border transition-all ${
             voted
-              ? 'border-rim text-dim/60 cursor-default'
-              : 'border-rim text-dim hover:border-accent hover:text-accent active:scale-95 cursor-pointer'
+              ? 'border-ink/20 bg-ink/[0.06] text-ink/55 cursor-default'
+              : 'border-rim text-dim hover:border-ink hover:text-ink active:scale-95 cursor-pointer'
           }`}
         >
           <span>{voted ? 'Ben de ✓' : 'Ben de'}</span>
           {count > 0 && (
             <span
-              className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-semibold bg-rim/60 text-ink/70"
+              className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.125rem] px-1 rounded-full text-[10px] font-semibold bg-ink/10 text-ink/60"
               style={{
-                transition: 'transform 200ms ease-out, opacity 200ms ease-out',
-                transform: pop ? 'scale(1.2)' : 'scale(1)',
-                opacity: pop ? 1 : 0.7,
+                transform: pop ? 'scale(1.35)' : 'scale(1)',
+                opacity: pop ? 1 : 0.8,
+                transition: 'transform 300ms cubic-bezier(0.34,1.56,0.64,1), opacity 200ms ease',
               }}
             >
               {count}
